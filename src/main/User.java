@@ -7,7 +7,7 @@ public class User {
 	
 	private int id;
 	private String name;
-	private List<Book> checkedOutList;
+	private DoublyLinkedList<Book> checkedOutList;
 
 	public User(int id, String name) {
 		this.id = id;
@@ -35,12 +35,22 @@ public class User {
 		return checkedOutList;
 	}
 
-	public void setCheckedOutList(List<Book> checkedOutList) {
+	public void setCheckedOutList(DoublyLinkedList<Book> checkedOutList) {
 		this.checkedOutList = checkedOutList;
 	}
 
 	public void addBook(Book book) {
 		checkedOutList.add(book);
+	}
+	
+	public float libraryFees() {
+		float dueFees = 0;
+		for (Book book : getCheckedOutList()) {
+			if (book.isCheckedOut() && book.calculateFees() > 0) {
+				dueFees += book.calculateFees();
+			}
+		}
+		return dueFees;
 	}
 	
 }
