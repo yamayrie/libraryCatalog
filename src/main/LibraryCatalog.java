@@ -6,8 +6,11 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.time.LocalDate;
 import java.util.Iterator;
+
+import org.w3c.dom.UserDataHandler;
 
 import data_structures.ArrayList;
 import data_structures.DoublyLinkedList;
@@ -16,39 +19,73 @@ import interfaces.FilterFunction;
 import interfaces.List;
 
 
-/*
- * A DoublyLinkedList was used to store the books and users since we're going to be adding and removing. With a DoublyLinkedList, we can traverse the list forward and backward. This allows us to move efficiently, something that would've given us a bigger time complexity using an ArrayList. If we used an ArrayList, it would've also taken resizing the array whenever we had to insert more books or users. Using an ArrayList would've been an option considered if we didn't have to insert or remove and just had to retrieve data.
+/**
+ * A DoublyLinkedList was used to store the books and users since we're going to be adding and removing.
+ * With a DoublyLinkedList, we can traverse the list forward and backward. This allows us to move efficiently,
+ * something that would've given us a bigger time complexity using an ArrayList. If we used an ArrayList,
+ * it would've also taken resizing the array whenever we had to insert more books or users. Using an ArrayList
+ * would've been an option considered if we didn't have to insert or remove and just had to retrieve data.
  * 
- * Between a SinglyLinkedList and a DoublyLinkedList, I decided to use a DoublyLinkedList. In both we wouldn't have to resize and the insertions and removals are both O(1). DoublyLinkedList just gives us the option of bidirectional traversal, making it the better option. If we had to iterate through the data in different orders, the DoublyLinkedList would make the implementation smoother and easier. It gives us more flexibility in what we do. Even if we will not need to traverse bidirectionally, it is a good option to have.
+ * Between a SinglyLinkedList and a DoublyLinkedList, I decided to use a DoublyLinkedList. In both we wouldn't
+ * have to resize and the insertions and removals are both O(1). DoublyLinkedList just gives us the option of
+ * bidirectional traversal, making it the better option. If we had to iterate through the data in different
+ * orders, the DoublyLinkedList would make the implementation smoother and easier. It gives us more flexibility
+ * in what we do. Even if we will not need to traverse bidirectionally, it is a good option to have.
  * 
- * */
+*/
 
 
 
+
+/**
+ * Class that represents a Library Catalog that manages a collection of books and users. Includes methods for
+ * adding, removing, returning, counting books, among other things. Generates reports on the books found in the
+ * library and the users fees, among other things.
+ * 
+*/
 public class LibraryCatalog {
 	
-	private DoublyLinkedList<Book> bookCatalog; // stores the library's collection of books
-	private DoublyLinkedList<User> users; // stores the information of the library's users
-	private int nextID; // next ID available for new books in the library
+	/** Stores the library's collection of books.*/
+	private DoublyLinkedList<Book> bookCatalog; 
+	/** Stores the information of the library's users.*/
+	private DoublyLinkedList<User> users;
+	/** Next ID available for new books in the library.*/
+	private int nextID;
 	
+	
+	/**
+	 * Constructs a new LibraryCatalog instance and initializes it by reading data from files.
+	 * 
+	 * @throws IOException if an error occurs while reading the data from the files.
+	 * 
+	*/
 	public LibraryCatalog() throws IOException {
-		bookCatalog = getBooksFromFiles(); // initializes by reading the data from catalog.csv
-		users = getUsersFromFiles(); // initializes by reading the data from user.csv
-		nextID = calculateNextID(); // sets the next available ID
+		bookCatalog = getBooksFromFiles(); 
+		users = getUsersFromFiles(); 
+		nextID = calculateNextID();
 	}
 	
+	
+	/**
+	 * Reads book data from catalog.csv. Each line is expected to contain comma-separated values representing
+	 * book attributes. It skips the first line which contains a header of the file's format for storing.
+	 * 
+	 * @return A doubly linked list that has book objects read from the file.
+	 * @throws IOException if an error occurs while reading the data from the file.
+	 * 
+	*/
 	private DoublyLinkedList<Book> getBooksFromFiles() throws IOException {
-		DoublyLinkedList<Book> books = new DoublyLinkedList<>(); // created a new DoublyLinkedList to store books
+		DoublyLinkedList<Book> books = new DoublyLinkedList<>();
 		
-		try (BufferedReader reader = new BufferedReader(new FileReader("data/catalog.csv"))) { // opening to be able to read "data/catalog.csv" file
+		try (BufferedReader reader = new BufferedReader(new FileReader("data/catalog.csv"))) {
 			String line; // stores each line read from the file
-			reader.readLine(); // skip the first line which just has the format for saving the books
+			reader.readLine(); // skip the first line 
 			
-			while ((line = reader.readLine()) != null) { // iteration until the end
-				String[] split = line.split(","); // splits the line and returns an array of strings around matches of commas
-				if (split.length == 6) { // checks if the array has 6 elements which is the amount of data the books have
+			while ((line = reader.readLine()) != null) {
+				String[] split = line.split(",");
+				if (split.length == 6) {
 					
-					// throws the data in their specific type
+					// splits the line in their specific type
 					int id = Integer.parseInt(split[0]);
 					String title = split[1];
 					String author = split[2];
@@ -56,72 +93,90 @@ public class LibraryCatalog {
 					LocalDate lastCheckoutDate = LocalDate.parse(split[4]);
 					boolean checkedOut = Boolean.parseBoolean(split[5]);
 					
-					// creates a new book with the split data and adds it to the books linked list
+					// creates a new book with the split data and adds it to the books list
 					Book book = new Book(id, title, author, genre, lastCheckoutDate, checkedOut);
 					books.add(book);
 				}
 			}
 		}
-		return books; // returns the list with all the split objects
+		return books;
 	}
 	
-	
+	/**
+	 * Reads user data from user.csv and construct a list of User objects.
+	 * 
+	 * Each line is expected to contain comma-separated values representing user attributes. The file's format
+	 * is ID,Full Name,{checked out books, if any} . The method iterates each line, creates User objects, and
+	 * adds their information. It skips the first line which contains a header of the file's format for storing.
+	 * 
+	 * @return A doubly linked list that has user objects read from the file.
+	 * @throws IOException if an error occurs while reading the data from the file.
+	 * 
+	*/
 	private DoublyLinkedList<User> getUsersFromFiles() throws IOException {
-		DoublyLinkedList<User> users = new DoublyLinkedList<>(); // created a new DoublyLinkedList to store users
-		
-		try (BufferedReader reader = new BufferedReader(new FileReader("data/user.csv"))) { // opening to be able to read "data/user.csv" file
+		DoublyLinkedList<User> users = new DoublyLinkedList<>();
+		DoublyLinkedList<Book> checkedOut;
+
+		try (BufferedReader reader = new BufferedReader(new FileReader("data/user.csv"))) {
 			String line; // stores each line read from the file
-			reader.readLine(); // skip the first line which just has the format for saving the books
+			reader.readLine(); // skips the first line
 			
-			while ((line = reader.readLine()) != null) { // iteration until the end
-				String[] split = line.split(","); // splits the line and returns an array of strings around matches of commas
-				if (split.length == 3) { // checks if the array has 3 elements which is the amount of data the users have
-					int id = Integer.parseInt(split[0]); // parse id
-					String name = split[1]; // get name
-					String bookString = split[2].trim(); // remove dragging spaces from book string 
-					
-					User user = new User(id, name); // create new user object
-					
-					if (!bookString.isEmpty()) {
-						String[] bookIds = bookString.replaceAll("[{}]", "").split(" ");
-						for (String bookIdString : bookIds) { // iterate through ids and add books to user's book list
-							int bookID = Integer.parseInt(bookIdString);
-							Book book = findBookById(bookID);
-							if (book != null) {
-								user.addBook(book); // add book to user's book list
+			while ((line = reader.readLine()) != null) {
+				// splits the line in their specific type
+				String[] split = line.split(",");
+				int id = Integer.parseInt(split[0].trim());
+				String name = split[1].trim();
+				
+				// if the line has checked out books
+				if (split.length == 3) {
+					checkedOut = new DoublyLinkedList<>();
+					String[] bookIDs = split[2].replaceAll("[{} ]", "").trim().split(",");
+					DoublyLinkedList<Book> bookCollection = getBookCatalog();
+
+					for (String bookID : bookIDs) {
+						int bookId = Integer.parseInt(bookID.trim());
+						for (Book book : bookCollection) {
+							if (book.getId() == bookId) {
+								checkedOut.add(book);
+								break;
 							}
 						}
 					}
-					users.add(user); // adds user to linked list
+	            }
+				else { // no checked out books by users
+					checkedOut = new DoublyLinkedList<>();
 				}
+				// creates a new user with the split data and adds it to the users list
+				User user = new User(id, name);
+				user.setCheckedOutList(checkedOut);
+				users.add(user);
+			
 			}
 		}
-		
-		return users; // returns the list with all the split data in their place
-	}
-	
-	
-	private Book findBookById(int bookID) {
-		for (Book book : bookCatalog) { // iterates the catalog
-			if (book.getId() == bookID) { // checks if book id matches target
-				return book; // if target id found, return the book
-			}
-		}
-		return null; // not found
+		return users;
 	}
 
+
+	
+	/** Allows us to access private fields outside of LibraryCatalog. We can access the reference to the DoublyLinkedList that stores the books. */
 	public DoublyLinkedList<Book> getBookCatalog() {
-		// allows us to access private fields outside off LibraryCatalog. we can access the reference to the DoublyLinkedList that stores the books
 		return bookCatalog;
 	}
 	
-	
+	/** Allows us to access private fields outside of LibraryCatalog. We can access the reference to the DoublyLinkedList that stores the users. */
 	public DoublyLinkedList<User> getUsers() {
-		// allows us to access private fields outside off LibraryCatalog. we can access the reference to the DoublyLinkedList that stores the users
 		return users;
 	}
 	
 	
+	/**
+	 * Adds a new book to the library catalog
+	 * 
+	 * @param title Title of the new book.
+	 * @param author Author of the new book.
+	 * @param genre Genre of the new book.
+	 * 
+	*/
 	public void addBook(String title, String author, String genre) {
 		
 		LocalDate today = LocalDate.of(2023, 9, 15);
@@ -131,85 +186,143 @@ public class LibraryCatalog {
 	}
 	
 	
+	/**
+	 * Removes a book from the library catalog based on its ID
+	 * 
+	 * @param id ID of the book to be removed.
+	 * 
+	*/
 	public void removeBook(int id) {
-		Iterator<Book> i = bookCatalog.iterator(); // creates iterator
-		while (i.hasNext()) { // loop through elements in bookCatalog
-			Book book = i.next(); // gets next element
-			if (book.getId() == id) { // checks if book id is equal to target id
-				i.remove(); // since found, removes the whole line from bookCatalog
-				return; // ends loop
+		Book toRemove = null;
+		for (Book book : bookCatalog) {
+			if (book.getId() == id) {
+				toRemove = book;
+				break;
 			}
 		}
-		System.out.println("Book not found in catalog"); // if id is not found
+		if (toRemove != null) {
+			bookCatalog.remove(toRemove);
+		}
 	}	
 	
 	
+	/**
+	 * Checks out a book from the library catalog based on its ID.
+	 * 
+	 * @param id ID of the book to be removed.
+	 * @return {@code true} if successful checkout, {@code false} if already checked out or doesn't exist in
+	 * catalog.
+	 * 
+	*/
 	public boolean checkOutBook(int id) {
-		for (Book book : bookCatalog) { // iteration
-			if (book.getId() == id) { // find the target id
-				if (book.isCheckedOut()) { // checks if it's available to check out
+		for (Book book : bookCatalog) {
+			if (book.getId() == id) {
+				if (book.isCheckedOut()) {
 					return false; 
 				}
-				else { // if found and it's not checked out
+				else {
 					LocalDate today = LocalDate.of(2023, 9, 15); 
-					book.setCheckedOut(true); // change checkout status
-					book.setLastCheckOut(today); // update checkout date
+					book.setCheckedOut(true);
+					book.setLastCheckOut(today);
 					return true;
 				}
 			}
 		}
-		return false; // book doesn't exist in catalog
+		return false;
 	}
 	
 	
+	
+	/**
+	 * Returns a book from the library catalog based on its ID.
+	 * 
+	 * @param id ID of the book to be returned.
+	 * @return {@code true} if successful return, {@code false} if book is not checked out or book doesn't
+	 * exist in catalog.
+	 * 
+	*/
 	public boolean returnBook(int id) {
-		for (Book book : bookCatalog) { // iteration
-			if (book.getId() == id) { // find target id
-				if (!book.isCheckedOut()) { // if not checked out
+		for (Book book : bookCatalog) {
+			if (book.getId() == id) {
+				if (!book.isCheckedOut()) {
 					return false;
 				}
 				else {
-					book.setCheckedOut(false); // if checked out
+					book.setCheckedOut(false);
 					return true;
 				}
 			}
 		}
 		
-		return false; // id not found
+		return false;
 	}
 	
 	
+	/**
+	 * Checks the availability of a book from the library catalog based on its ID.
+	 * 
+	 * @param id ID of the book to check availability.
+	 * @return {@code true} if available, {@code false} if checked out or book is not found in the catalog.
+	 * 
+	*/
 	public boolean getBookAvailability(int id) {
-		for (Book book :bookCatalog) {
-			if (book.getId() == id) { // if book id equals target
-				return !book.isCheckedOut(); // true if book is not checked out
+		for (Book book : bookCatalog) {
+			if (book.getId() == id) {
+				return !book.isCheckedOut();
 			}
 		}
-		return false; // book not found
+		return false; // book doesn't exist
 	}
 	
 	
+	
+	/**
+	 * Counts the amount of books in the library catalog based on its title ignoring case.
+	 * 
+	 * @param title Title of the book to count instances of.
+	 * @return The number of books with matching title.
+	 * 
+	*/
 	public int bookCount(String title) {
-		int count = 0; // initialize counter for matching books
-		for (Book book : bookCatalog) { // iteration
-			if (book.getTitle().equalsIgnoreCase(title)) { // checks if book title equals target title
-				count++; // if true, increases counter
+		int count = 0; 
+		for (Book book : bookCatalog) { 
+			if (book.getTitle().equalsIgnoreCase(title)) {
+				count++;
 			}
 		}
 		return count; // number of books with matching titles
 	}
 	
+	
+	/**
+	 * Calculates the next available ID for a new book in the catalog.
+	 * It finds the largest ID currently in use and returns the next available one
+	 * which is one greater than the largest ID found.
+	 * 
+	 * @return The next available ID for a new book.
+	 *
+	*/
 	private int calculateNextID() {
-		int biggestID = 0; // initialization of largest id
+		int biggestID = 0; 
 		
-		for (Book book : bookCatalog) { // iteration
-			if (book.getId() > biggestID) { // if book id is greater than the current one
-				biggestID = book.getId(); // update the largest id
+		for (Book book : bookCatalog) { 
+			if (book.getId() > biggestID) {
+				biggestID = book.getId();
 			}
 		}
-		return biggestID + 1; // after going through every book in the catalog, it returns the largest id plus one to make sure that when we add a new book to the catalog, it will have the next id after the last one
+		return biggestID + 1;
 	}
 	
+	
+	/**
+	 * Counts the number of books in the catalog that belong to a specific genre.
+	 * The method iterates through the book catalog and counts how many of them 
+	 * match the parameter.
+	 * 
+	 * @param genre The genre to be counted
+	 * @return The number of books in the catalog with the genre
+	 * 
+	*/
 	public int genreCount(String genre) {
 		int count = 0;
 		for (Book book : bookCatalog) {
@@ -220,21 +333,22 @@ public class LibraryCatalog {
 		return count;
 	}
 	
-	private double calculateTotalFees(User user) {
-		double totalDue = 0.0;
-		for (Book book : user.getCheckedOutList()) {
-			if (book.isCheckedOut()) {
-				totalDue += book.calculateFees();
-			}
-		}
-		return totalDue;
-	}
 	
-	public double calculateTotalLibraryFees() {
+	
+	/**
+	 * Calculates the total library fees for a user based on their checked out books.
+	 * 
+	 * @param u User to calculate library fees.
+	 * @return Total fees for the user.
+	 * 
+	*/
+	public double calculateLibraryFees(User user) {
 		double totalFees = 0.0;
-		for (User user : users) {
-			totalFees += calculateTotalFees(user);
-		}
+			for (Book book : user.getCheckedOutList()) {
+				if (book.isCheckedOut() == true) {
+					totalFees += book.calculateFees();
+				}
+			}
 		return totalFees;
 	}
 	
@@ -321,19 +435,29 @@ public class LibraryCatalog {
 		 * PLACE CODE HERE!
 		 */
 		
-		
-		
+
+		double totalDue = 0.0;
 		for (User user : users) {
-			double totalFees = calculateTotalFees(user);
-			if (totalFees > 0) {
-				output += user.getName() + "\t\t\t\t\t$" + String.format("%.2f", totalFees) + "\n";
+			double userFee = 0.0;
+			for (Book book : user.getCheckedOutList()) {
+				if (book.isCheckedOut()) {
+					float fee = book.calculateFees();
+					if (fee > 0) {
+						userFee += fee;
+					}
+				}
+			}
+			if (userFee > 0) {
+				output += user.getName() + "\t\t\t\t\t$" + String.format("%.2f", userFee) + "\n";
+				totalDue += userFee;
 			}
 		}
+		
+		
 
 			
 		output += "====================================================\n";
 		
-		double totalDue = calculateTotalLibraryFees();
 		output += "\t\t\t\tTOTAL DUE\t$" + String.format("%.2f", totalDue) + "\n\n\n";
 		output += "\n\n";
 		System.out.println(output);// You can use this for testing to see if the report is as expected.
@@ -362,8 +486,11 @@ public class LibraryCatalog {
 	 * You are not required to implement these, but they can be useful for
 	 * other parts of the project.
 	 */
+	
+	
+	
 	public List<Book> searchForBook(FilterFunction<Book> func) {
-		List<Book> matchingBooks = new ArrayList<>();
+		ArrayList<Book> matchingBooks = new ArrayList<>();
 		for (Book book : bookCatalog) {
 			if (func.filter(book)) {
 				matchingBooks.add(book);
@@ -373,7 +500,7 @@ public class LibraryCatalog {
 	}
 	
 	public List<User> searchForUsers(FilterFunction<User> func) {
-		List<User> matchingUsers = new ArrayList<>();
+		ArrayList<User> matchingUsers = new ArrayList<>();
 		for (User user : users) {
 			if (func.filter(user)) {
 				matchingUsers.add(user);
