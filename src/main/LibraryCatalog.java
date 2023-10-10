@@ -130,7 +130,7 @@ public class LibraryCatalog {
 				// if the line has checked out books
 				if (split.length == 3) {
 					checkedOut = new DoublyLinkedList<>();
-					String[] bookIDs = split[2].replaceAll("[{} ]", "").trim().split(",");
+					String[] bookIDs = split[2].replace("{", "").replace("}", "").split(" ");
 					DoublyLinkedList<Book> bookCollection = getBookCatalog();
 
 					for (String bookID : bookIDs) {
@@ -346,9 +346,10 @@ public class LibraryCatalog {
 		double totalFees = 0.0;
 			for (Book book : user.getCheckedOutList()) {
 				if (book.isCheckedOut() == true) {
+					if (book.calculateFees() > 0) {
 					totalFees += book.calculateFees();
 				}
-			}
+			}}
 		return totalFees;
 	}
 	

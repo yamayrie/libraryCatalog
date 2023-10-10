@@ -1,6 +1,7 @@
 package main;
 
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 
 public class Book {
 	
@@ -18,7 +19,7 @@ public class Book {
 		this.genre = genre;
 		this.lastCheckoutDate = lastCheckoutDate;
 		this.checkedOut = checkedOut;
-	}
+	}	
 	
 	public int getId() {
 		return id;
@@ -74,26 +75,22 @@ public class Book {
 		 */
 		return title.toUpperCase() + " BY " + author.toUpperCase();
 	}
+	
 	public float calculateFees() {
 		/*
 		 * fee (if applicable) = base fee + 1.5 per additional day
 		 */
-		
 		LocalDate today = LocalDate.of(2023, 9, 15);
-		LocalDate checkedOutDate = getLastCheckOut();
-		
-		int daysSince = (int) checkedOutDate.until(today).getDays();
+		long daysSince = ChronoUnit.DAYS.between(this.getLastCheckOut(), today);
 		
 		if (daysSince >= 31) {
 			float baseFee = 10.0f;
 			float additionalFees = 1.50f;
-			
 			float lateFee = baseFee + additionalFees * (daysSince - 31);
 			return lateFee;
 		}
 		else {
 			return 0.0f;
-		}
-		
+		}		
 	}
 }
