@@ -43,6 +43,13 @@ public class User {
 		checkedOutList.add(book);
 	}
 	
+	
+	/**
+	 * Calculates the total library fees owed by the user. It's calculated as the sum of late fees for checked out books.
+	 * 
+	 * @return The total library fees owed by the user.
+	 * 
+	*/
 	public float libraryFees() {
 		float dueFees = 0;
 		for (Book book : getCheckedOutList()) {

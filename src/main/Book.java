@@ -69,17 +69,23 @@ public class Book {
 		/*
 		 * This is supposed to follow the format
 		 * 
-		 * {TITLE} By {AUTHOR}
+		 * {TITLE} BY {AUTHOR}
 		 * 
 		 * Both the title and author are in uppercase.
 		 */
 		return title.toUpperCase() + " BY " + author.toUpperCase();
 	}
 	
+	
+	
+	/**
+	 * Calculates the late fee for a checked out book based on the number of days it's overdue.
+	 * 
+	 * @return How much money is owed in late fees, or 0 if not overdue
+	 * 
+	*/
 	public float calculateFees() {
-		/*
-		 * fee (if applicable) = base fee + 1.5 per additional day
-		 */
+		
 		LocalDate today = LocalDate.of(2023, 9, 15);
 		long daysSince = ChronoUnit.DAYS.between(this.getLastCheckOut(), today);
 		

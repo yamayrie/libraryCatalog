@@ -297,7 +297,7 @@ public class LibraryCatalog {
 	/**
 	 * Calculates the next available ID for a new book in the catalog.
 	 * It finds the largest ID currently in use and returns the next available one
-	 * which is one greater than the largest ID found.
+	 * which is one greater than the largest ID found. 
 	 * 
 	 * @return The next available ID for a new book.
 	 *
@@ -338,7 +338,7 @@ public class LibraryCatalog {
 	/**
 	 * Calculates the total library fees for a user based on their checked out books.
 	 * 
-	 * @param u User to calculate library fees.
+	 * @param user User to calculate library fees.
 	 * @return Total fees for the user.
 	 * 
 	*/
@@ -348,8 +348,9 @@ public class LibraryCatalog {
 				if (book.isCheckedOut() == true) {
 					if (book.calculateFees() > 0) {
 					totalFees += book.calculateFees();
+					}
 				}
-			}}
+			}
 		return totalFees;
 	}
 	
@@ -490,8 +491,15 @@ public class LibraryCatalog {
 	
 	
 	
+	
+	/**
+	 * Method that receives a lambda function and searches for books.
+	 * 
+	 * @param func The lambda function received
+	 * @return List of books that follow the condition given by the lambda function.
+	*/
 	public List<Book> searchForBook(FilterFunction<Book> func) {
-		ArrayList<Book> matchingBooks = new ArrayList<>();
+		DoublyLinkedList<Book> matchingBooks = new DoublyLinkedList<>();
 		for (Book book : bookCatalog) {
 			if (func.filter(book)) {
 				matchingBooks.add(book);
@@ -500,8 +508,15 @@ public class LibraryCatalog {
 		return matchingBooks;
 	}
 	
+	
+	/**
+	 * Method that receives a lambda function and searches for users.
+	 * 
+	 * @param func The lambda function received
+	 * @return List of users that follow the condition given by the lambda function.
+	*/
 	public List<User> searchForUsers(FilterFunction<User> func) {
-		ArrayList<User> matchingUsers = new ArrayList<>();
+		DoublyLinkedList<User> matchingUsers = new DoublyLinkedList<>();
 		for (User user : users) {
 			if (func.filter(user)) {
 				matchingUsers.add(user);
