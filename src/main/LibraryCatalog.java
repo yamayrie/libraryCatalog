@@ -451,7 +451,7 @@ public class LibraryCatalog {
 		 */
 		
 		
-		try (BufferedWriter writer = new BufferedWriter(new FileWriter("report.txt"))) {
+		try (BufferedWriter writer = new BufferedWriter(new FileWriter("report/report.txt"))) {
 			writer.write(output);
 		}
 		catch (IOException e) {
